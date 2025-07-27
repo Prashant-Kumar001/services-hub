@@ -256,20 +256,43 @@ const ColorPalettePage: React.FC = () => {
     handleGeneratePalette();
   }, [handleGeneratePalette]);
 
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white rounded-2xl p-8 shadow-xl border border-yellow-200">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-500 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl">🎨</span>
+            </div>
+          </div>
+          <p className="mt-6 text-xl text-gray-700 font-medium">
+            Generating a vibrant palette...
+          </p>
+          <p className="mt-2 text-sm text-gray-500">This won't take long!</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 p-2">
       <div className="w-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-yellow-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-400 to-purple-400 p-6 text-center">
-          <h1 className="text-3xl font-bold text-white">
-            🎨 Enhanced Color Palette Generator 🌈
-          </h1>
-          <p className="text-blue-100 mt-2">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="text-3xl">🎨</span>
+            <h1 className="text-3xl font-bold text-white">
+              Enhanced Color Palette Generator
+            </h1>
+            <span className="text-3xl">🌈</span>
+          </div>
+          <p className="text-blue-100">
             Create vibrant palettes with advanced features!
           </p>
         </div>
 
         <div className="p-6">
-           {/* Controls Panel */}
+          {/* Controls Panel */}
           <div className="bg-gray-50 rounded-2xl p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
@@ -287,7 +310,7 @@ const ColorPalettePage: React.FC = () => {
                   <option value="monochromatic">Monochromatic</option>
                 </select>
               </div>
-{/* 
+
               {paletteMode !== "random" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -300,7 +323,7 @@ const ColorPalettePage: React.FC = () => {
                     className="w-full h-10 border border-gray-300 rounded-lg cursor-pointer"
                   />
                 </div>
-              )} */}
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -335,63 +358,45 @@ const ColorPalettePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Palette Section */}
-          <div className="mb-6 min-h-[200px]">
-            {loading ? (
-              <div className="flex justify-center items-center h-full p-12">
-                <div className="text-center">
-                  <div className="relative">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-200 border-t-yellow-500 mx-auto"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl">🎨</span>
-                    </div>
+          {/* Color Palette */}
+          <div
+            className={`grid gap-4 mb-6 ${
+              paletteSize <= 8
+                ? "grid-cols-2 sm:grid-cols-4 md:grid-cols-8"
+                : "grid-cols-2 sm:grid-cols-5 md:grid-cols-10"
+            }`}
+          >
+            {colors.map((color, idx) => (
+              <div key={idx} className="relative group">
+                <div
+                  className="rounded-xl shadow-md cursor-pointer relative overflow-hidden border border-gray-100 animate-in fade-in duration-500 aspect-square"
+                  style={{ backgroundColor: color }}
+                  onClick={() => handleCopy(color)}
+                >
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="text-white text-xs font-medium text-center px-2">
+                      {copiedColor === color
+                        ? "Copied!"
+                        : showColorDetails
+                        ? getColorInfo(color)[
+                            exportFormat as keyof ReturnType<
+                              typeof getColorInfo
+                            >
+                          ]
+                        : color.toUpperCase()}
+                    </span>
                   </div>
-                  <p className="mt-4 text-gray-700 font-medium">
-                    Generating a vibrant palette...
-                  </p>
                 </div>
-              </div>
-            ) : (
-              <div
-                className={`grid gap-4 ${
-                  paletteSize <= 8
-                    ? "grid-cols-2 sm:grid-cols-4 md:grid-cols-8"
-                    : "grid-cols-2 sm:grid-cols-5 md:grid-cols-10"
-                }`}
-              >
-                {colors.map((color, idx) => (
-                  <div key={idx} className="relative group">
-                    <div
-                      className="rounded-xl shadow-md cursor-pointer relative overflow-hidden border border-gray-100 animate-in fade-in duration-500 aspect-square"
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleCopy(color)}
-                    >
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <span className="text-white text-xs font-medium text-center px-2">
-                          {copiedColor === color
-                            ? "Copied!"
-                            : showColorDetails
-                            ? getColorInfo(color)[
-                                exportFormat as keyof ReturnType<
-                                  typeof getColorInfo
-                                >
-                              ]
-                            : color.toUpperCase()}
-                        </span>
-                      </div>
+                {showColorDetails && (
+                  <div className="mt-2 text-xs text-center text-gray-600">
+                    <div>{getColorInfo(color).hex}</div>
+                    <div className="text-gray-500">
+                      {getColorInfo(color).rgb}
                     </div>
-                    {showColorDetails && (
-                      <div className="mt-2 text-xs text-center text-gray-600">
-                        <div>{getColorInfo(color).hex}</div>
-                        <div className="text-gray-500">
-                          {getColorInfo(color).rgb}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                ))}
+                )}
               </div>
-            )}
+            ))}
           </div>
 
           {/* Action Buttons */}
@@ -472,6 +477,7 @@ const ColorPalettePage: React.FC = () => {
             </div>
           )}
         </div>
+
         <div className="bg-gray-50 px-6 py-4 text-center border-t">
           <p className="text-sm text-gray-500">
             Enhanced Color Palette Generator - Powered by UtiliHub

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import toast, { Toaster } from "react-hot-toast";
-import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import SessionProviderWrapper from "@/components/ui/SessionProviderWrapper";
 
 
 export const metadata: Metadata = {
