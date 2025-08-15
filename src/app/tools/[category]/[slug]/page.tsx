@@ -1,5 +1,3 @@
-import dynamic from "next/dynamic";
-import ToolLoader from "@/components/ui/loader";
 import { Metadata } from "next";
 import toolMap from "@/config/toolMap";
 import { toolMetadata } from "@/config/toolMeta";

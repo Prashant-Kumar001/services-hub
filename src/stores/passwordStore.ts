@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import Email from "next-auth/providers/email";
 import {
   PasswordEntry,
   MasterPassword,
@@ -9,7 +8,6 @@ import {
 import {
   simpleHash,
   generateSalt,
-  checkPasswordStrength,
 } from "../utils/passwordUtils";
 
 interface PasswordState {
@@ -27,7 +25,6 @@ interface PasswordState {
   passwordGenerator: PasswordGeneratorConfig;
   categories: string[];
 
-  // Actions
   setIsUnlocked: (value: boolean) => void;
   setMasterPassword: (value: string) => void;
   setStoredMasterPassword: (value: MasterPassword | null) => void;
@@ -84,14 +81,9 @@ export const usePasswordStore = create<PasswordState>()(
       setStoredMasterPassword: (value) => set({ storedMasterPassword: value }),
       initializePasswords: (passwords) =>
         set({
-          passwords: passwords
-            .map((p) => ({
-              ...p,
-              lastModified: new Date(p.lastModified),
-            }))
-            .sort((a, b) =>
-              a.favorite === b.favorite ? 0 : a.favorite ? -1 : 1
-            ),
+          passwords: passwords.sort((a, b) =>
+            a.favorite === b.favorite ? 0 : a.favorite ? -1 : 1
+          ),
           originalPasswords: [...passwords],
         }),
       setSearchTerm: (value) => set({ searchTerm: value }),
@@ -99,7 +91,7 @@ export const usePasswordStore = create<PasswordState>()(
       setShowAddModal: (value) => set({ showAddModal: value }),
       setEditingPassword: (value) => set({ editingPassword: value }),
       lockVault: () => {
-        sessionStorage.removeItem("masterKey");
+        localStorage.setItem("isUnlocked", "false");
         set({
           isUnlocked: false,
           masterPassword: "",
@@ -134,7 +126,7 @@ export const usePasswordStore = create<PasswordState>()(
         localStorage.setItem("vaultHash", hash);
         localStorage.setItem("vaultSalt", salt);
 
-        sessionStorage.setItem("masterKey", masterPassword);
+        localStorage.setItem("masterKey", masterPassword);
 
         setIsUnlocked(true);
 
@@ -178,7 +170,6 @@ export const usePasswordStore = create<PasswordState>()(
 
         setTimeout(() => set({ notification: null }), 3000);
       },
-
       copyToClipboard: async (text: string) => {
         try {
           await navigator.clipboard.writeText(text);
@@ -260,7 +251,7 @@ export const usePasswordStore = create<PasswordState>()(
             const created = await response.json();
             updatedPasswords = [
               ...passwords,
-              { ...passwordData, _id: created._id },
+              { ...passwordData, _id: created._id, createdAt: created.createdAt, updatedAt: created.updatedAt },
             ];
 
             set({
@@ -278,7 +269,6 @@ export const usePasswordStore = create<PasswordState>()(
           setTimeout(() => set({ notification: null }), 3000);
         }
       },
-
       togglePasswordVisibility: (id: string) => {
         set(() => ({
           showPasswords: {
@@ -287,49 +277,45 @@ export const usePasswordStore = create<PasswordState>()(
           },
         }));
       },
-      toggleFavorite: (id: string) => {
-        set((state) => {
-          const updatedPasswords = state.passwords.map((password) =>
+      toggleFavorite: async (id: string) => {
+        set((state) => ({
+          passwords: state.passwords.map((password) =>
             password._id === id
               ? { ...password, favorite: !password.favorite }
               : password
-          );
+          ),
+        }));
 
-          const hasFavorites = updatedPasswords.some((p) => p.favorite);
-          let finalPasswords;
-
-          if (hasFavorites) {
-            finalPasswords = [...updatedPasswords].sort((a, b) => {
-              if (a.favorite === b.favorite) return 0;
-              return a.favorite ? -1 : 1;
-            });
-          } else {
-            finalPasswords = state.originalPasswords.map((original) => {
-              const updated = updatedPasswords.find(
-                (p) => p._id === original._id
-              );
-              return updated ?? original;
-            });
-          }
-
-          return { passwords: finalPasswords };
-        });
         try {
-          fetch(`/api/password`, {
+          await fetch(`/api/password`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "togglePin", id }),
           });
         } catch (error) {
           console.error("Error toggling favorite:", error);
+          set((state) => ({
+            passwords: state.passwords.map((password) =>
+              password._id === id
+                ? { ...password, favorite: !password.favorite }
+                : password
+            ),
+          }));
+          set({
+            notification: {
+              message: "Failed to toggle favorite",
+              type: "error",
+            },
+          });
         }
+        setTimeout(() => set({ notification: null }), 3000);
       },
       deletePassword: (id: string) => {
         set((state) => ({
           passwords: state.passwords.filter((password) => password._id !== id),
           originalPasswords: state.originalPasswords.filter(
             (password) => password._id !== id
-          )
+          ),
         }));
         try {
           fetch(`/api/password`, {
@@ -340,7 +326,7 @@ export const usePasswordStore = create<PasswordState>()(
         } catch (error) {
           console.error("Error deleting password:", error);
         }
-      }
+      },
     }),
     {
       name: "PasswordStore",

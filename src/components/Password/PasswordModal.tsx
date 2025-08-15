@@ -22,6 +22,8 @@ import {
   Tag,
 } from "lucide-react";
 
+import { PasswordEntry } from "@/types/index";
+
 const PasswordModal: React.FC = () => {
   const {
     editingPassword,
@@ -32,22 +34,27 @@ const PasswordModal: React.FC = () => {
     categories,
   } = usePasswordStore();
 
-  const [formData, setFormData] = useState({
-    title: editingPassword?.title || "",
-    email: editingPassword?.email || "",
-    category: editingPassword?.category || "other",
-    favorite: editingPassword?.favorite || false,
-    website: editingPassword?.website || "",
-    username: editingPassword?.username || "",
-    password: editingPassword?.password || "",
-    notes: editingPassword?.notes || "",
-    strength: editingPassword?.strength || "weak",
-    lastModified: editingPassword?.lastModified || new Date(),
+  const [formData, setFormData] = useState<PasswordEntry>(() => {
+    return {
+      title: editingPassword?.title || "",
+      email: editingPassword?.email || "",
+      category: editingPassword?.category || "other",
+      favorite: editingPassword?.favorite || false,
+      website: editingPassword?.website || "",
+      username: editingPassword?.username || "",
+      password: editingPassword?.password || "",
+      notes: editingPassword?.notes || "",
+      strength: editingPassword?.strength || "weak",
+      lastModified: editingPassword?.lastModified || new Date(),
+    };
   });
+
+ 
+
+  
 
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
 
   useEffect(() => {
     const strength = checkPasswordStrength(formData.password);
@@ -62,10 +69,7 @@ const PasswordModal: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newForm = {
-      ...formData,
-      lastModified: new Date(),
-    };
+    const newForm = { ...formData, lastModified: new Date() };
 
     addOrUpdatePassword(newForm);
     handleClose();
@@ -94,8 +98,6 @@ const PasswordModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-100 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative">
-       
-       
         <div className="relative flex justify-between items-center px-6 py-4 border-b border-gray-200 backdrop-blur-sm">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
@@ -115,12 +117,10 @@ const PasswordModal: React.FC = () => {
           </button>
         </div>
 
-        
         <form
           onSubmit={handleSubmit}
           className="relative space-y-6 p-6 overflow-y-auto max-h-[calc(90vh-120px)]"
         >
-         
           <div className="space-y-2">
             <label
               htmlFor="website"
@@ -146,7 +146,6 @@ const PasswordModal: React.FC = () => {
             />
           </div>
 
-         
           <div className="space-y-2">
             <label
               htmlFor="title"
@@ -173,7 +172,6 @@ const PasswordModal: React.FC = () => {
             />
           </div>
 
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label
@@ -226,7 +224,6 @@ const PasswordModal: React.FC = () => {
             </div>
           </div>
 
-          
           <div className="space-y-3">
             <label
               htmlFor="password"
@@ -273,7 +270,6 @@ const PasswordModal: React.FC = () => {
               </div>
             </div>
 
-            
             {formData.password && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -301,7 +297,6 @@ const PasswordModal: React.FC = () => {
             )}
           </div>
 
-          
           <div className="space-y-2">
             <label
               htmlFor="category"
@@ -331,7 +326,6 @@ const PasswordModal: React.FC = () => {
             </select>
           </div>
 
-         
           <div className="space-y-2">
             <label
               htmlFor="notes"
@@ -357,7 +351,6 @@ const PasswordModal: React.FC = () => {
             />
           </div>
 
-          
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <input
               type="checkbox"

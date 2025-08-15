@@ -21,8 +21,6 @@ const SearchAndFilter: React.FC = () => {
   } = usePasswordStore();
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-  const [sortBy, setSortBy] = useState("name");
 
   const clearSearch = () => {
     setSearchTerm("");

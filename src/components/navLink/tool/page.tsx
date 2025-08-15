@@ -201,9 +201,7 @@ export default function UtiliHubToolsPage() {
     (acc, cat) => acc + cat.tools.length,
     0
   );
-  const popularTools = categories?.flatMap((cat) =>
-    cat.tools.filter((tool) => tool.popular)
-  ).length;
+  
   const newTools = categories.flatMap((cat) =>
     cat.tools.filter((tool) => tool.new)
   ).length;
