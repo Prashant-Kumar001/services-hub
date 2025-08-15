@@ -5,11 +5,12 @@ import { Password } from "@/models/password";
 export async function GET(req: NextRequest) {
   await dbConnect();
   const userEmail = req.nextUrl.searchParams.get("userEmail");
+  console.log("Fetching passwords for user:", userEmail);
 
   try {
     if (!userEmail)
       return NextResponse.json({ error: "Missing userEmail" }, { status: 400 });
-    const passwords = await Password.find();
+    const passwords = await Password.find({ email: userEmail }).sort({ createdAt: -1 });
     return NextResponse.json(passwords, { status: 200 });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });

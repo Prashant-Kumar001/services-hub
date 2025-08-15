@@ -2,16 +2,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { usePasswordStore } from "../../stores/passwordStore";
 import MasterPasswordForm from "./MasterPasswordForm";
+import MasterPasswordSetupForm from "./MasterPasswordSetupForm";
 import Header from "./Header";
 import SearchAndFilter from "./SearchAndFilter";
 import PasswordList from "./PasswordList";
 import PasswordModal from "./PasswordModal";
 import Notification from "./Notification";
 import { useSession } from "next-auth/react";
+import { PasswordEntry } from '../../types/index';
 
 const initialLoadPassword = async (
   currentUser: string,
-  initializePasswords: (data: any[]) => void,
+  initializePasswords: (data: PasswordEntry[]) => void,
   setLoading: (loading: boolean) => void
 ) => {
   try {
@@ -29,7 +31,8 @@ const initialLoadPassword = async (
       throw new Error("Failed to fetch passwords");
     }
 
-    const data = await response.json();
+    const data: PasswordEntry[] = await response.json();
+
     initializePasswords(data);
   } catch (err) {
     console.error("Error loading passwords:", err);
@@ -50,15 +53,38 @@ const PasswordManager: React.FC = () => {
   const { data: session, status } = useSession();
   const hasLoadedRef = useRef(false);
   const [loading, setLoading] = useState(true);
+  const [hasMasterPassword, setHasMasterPassword] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
-    if (session?.user?.email && !hasLoadedRef.current) {
+    const checkMasterStatus = async () => {
+      if (session?.user?.email) {
+        const res = await fetch(
+          `/api/master-password/has?email=${session.user.email}`
+        );
+        const data = await res.json();
+        setHasMasterPassword(data.hasMasterPassword);
+      }
+    };
+    checkMasterStatus();
+  }, [session]);
+
+  useEffect(() => {
+    if (session?.user?.email && isUnlocked && !hasLoadedRef.current) {
       hasLoadedRef.current = true;
       initialLoadPassword(session.user.email, initializePasswords, setLoading);
     }
-  }, [session, initializePasswords]);
+  }, [session, isUnlocked, initializePasswords]);
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (!isUnlocked) {
+      initializePasswords([]);
+      hasLoadedRef.current = false;
+    }
+  }, [isUnlocked, initializePasswords]);
+
+  if (status === "loading" || hasMasterPassword === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -87,27 +113,29 @@ const PasswordManager: React.FC = () => {
     );
   }
 
+  if (hasMasterPassword === false) {
+    return <MasterPasswordSetupForm />;
+  }
+
+  if (!isUnlocked) {
+    return <MasterPasswordForm />;
+  }
+
   return (
     <>
       {notification && <Notification notification={notification} />}
-      {isUnlocked ? (
-        <>
-          <Header passwordsCount={passwords.length} />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <SearchAndFilter />
-            {loading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <PasswordList />
-            )}
-            {showAddModal && <PasswordModal />}
+      <Header passwordsCount={passwords.length} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SearchAndFilter />
+        {loading ? (
+          <div className="flex items-center justify-center h-40">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
-        </>
-      ) : (
-        <MasterPasswordForm />
-      )}
+        ) : (
+          <PasswordList />
+        )}
+        {showAddModal && <PasswordModal />}
+      </div>
     </>
   );
 };

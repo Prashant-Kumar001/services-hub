@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { getStrengthBg, getStrengthColor } from "@/utils/passwordUtils";
+import { formatDistanceToNowStrict } from "date-fns";
 
 interface PasswordCardProps {
   password: PasswordEntry;
@@ -32,8 +33,15 @@ const PasswordCard: React.FC<PasswordCardProps> = ({ password }) => {
 
 
 
+
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
+    <div
+      className={`bg-white rounded-xl ${
+        password.favorite
+          ? "border-2 border-yellow-500"
+          : "border-2 border-gray-200/60"
+      } shadow-sm hover:shadow-md transition-shadow p-6`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -94,10 +102,14 @@ const PasswordCard: React.FC<PasswordCardProps> = ({ password }) => {
         <div className="flex items-center space-x-2">
           <Key className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-600 flex-1 font-mono">
-            {showPasswords[password._id ? password._id : ""] ? password.password : "••••••••"}
+            {showPasswords[password._id ? password._id : ""]
+              ? password.password
+              : "••••••••"}
           </span>
           <button
-            onClick={() => togglePasswordVisibility(password._id ? password._id : "")}
+            onClick={() =>
+              togglePasswordVisibility(password._id ? password._id : "")
+            }
             className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
           >
             {showPasswords[password._id ? password._id : ""] ? (
@@ -124,10 +136,27 @@ const PasswordCard: React.FC<PasswordCardProps> = ({ password }) => {
               {password.strength.toUpperCase()}
             </span>
           </div>
-
+        </div>
+        <div className="flex items-center justify-between">
           <div className="flex items-center text-xs text-gray-500 space-x-1">
             <Clock className="w-3 h-3" />
-            <span>Modified {new Date(password.lastModified).toLocaleString()}</span>
+            created{" "}
+            {formatDistanceToNowStrict(
+              new Date(password.createdAt ? password.createdAt : ""),
+              {
+                addSuffix: true,
+              }
+            )}
+          </div>
+          <div className="flex items-center text-xs text-gray-500 space-x-1">
+            <Clock className="w-3 h-3" />
+            Modified{" "}
+            {formatDistanceToNowStrict(
+              new Date(password.updatedAt ? password.updatedAt : ""),
+              {
+                addSuffix: true,
+              }
+            )}
           </div>
         </div>
       </div>

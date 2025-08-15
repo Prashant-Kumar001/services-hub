@@ -9,6 +9,8 @@ export interface PasswordEntry {
   category: string;
   favorite: boolean;
   lastModified: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   strength: "weak" | "medium" | "strong";
 }
 
@@ -78,4 +80,31 @@ export type Note = {
   isPinned?: boolean;
   createdAt?: string;
   updatedAt?: string;
+};
+
+type ToolType = {
+  name: string;
+  description: string;
+  popular?: boolean;
+  new?: boolean;
+  href?: string;
+  slug?: string;
+};
+
+export type CategoryType = {
+  title: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  hoverColor: string;
+  shadowColor: string;
+  slug: string;
+  tools: ToolType[];
+};
+
+export type ToolsCardProps = {
+  tool: ToolType;
+  category: CategoryType;
+  index: number;
 };
