@@ -222,17 +222,20 @@ export const usePasswordStore = create<PasswordState>()(
         try {
           if (editingPassword) {
             const response = await fetch(
-              `/api/passwords/${editingPassword._id}`,
+              `/api/password`,
               {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(passwordData),
+                body: JSON.stringify({passwordData, id: editingPassword._id, action: 'update'}),
               }
             );
             if (!response.ok) throw new Error("Failed to update password");
             const updated = await response.json();
+
+            console.log("updated pass", updated)
+
             updatedPasswords = passwords.map((p) =>
-              p._id === editingPassword._id ? updated : p
+              p._id === editingPassword._id ? updated?.password : p
             );
 
             set({ editingPassword: null });

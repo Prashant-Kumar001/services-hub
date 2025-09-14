@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
   try {
     if (!userEmail)
       return NextResponse.json({ error: "Missing userEmail" }, { status: 400 });
-    const passwords = await Password.find({ email: userEmail }).sort({ createdAt: -1 });
+    const passwords = await Password.find({ email: userEmail }).sort({
+      createdAt: -1,
+    });
     return NextResponse.json(passwords, { status: 200 });
   } catch (err) {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
@@ -33,10 +35,11 @@ export async function PUT(req: NextRequest) {
   await dbConnect();
   try {
     const body = await req.json();
-    const { id, action } = body;
+    console.log(body);
+    const { id, action, passwordData } = body;
     const thisPassword = await Password.findById(id);
 
-    console.log(id, action)
+    console.log(id, action);
 
     if (!thisPassword) {
       return NextResponse.json(
@@ -50,11 +53,21 @@ export async function PUT(req: NextRequest) {
       case "togglePin":
         updatedPassword = await thisPassword.togglefavorite();
         break;
+      case "update":
+        updatedPassword = await thisPassword.update(passwordData);
+        return NextResponse.json({
+          status: true,
+          message: "updated",
+          password: updatedPassword
+        })
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    return NextResponse.json({favorite: updatedPassword.favorite}, { status: 200 });
+    return NextResponse.json(
+      { favorite: updatedPassword.favorite },
+      { status: 200 }
+    );
   } catch (err) {
     console.log(err);
     return NextResponse.json({ error: "Failed to update" }, { status: 400 });

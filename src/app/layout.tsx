@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <SessionProviderWrapper>
         <body className="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors">
           <Navbar />
