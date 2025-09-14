@@ -51,5 +51,29 @@ PasswordSchema.methods.togglefavorite = function () {
   return this.save();
 };
 
+PasswordSchema.methods.update = function ({
+  title,
+  email,
+  category,
+  favorite,
+  website,
+  username,
+  password,
+  notes,
+  strength,
+  lastModified,
+}: IPassword) {
+  this.title = title;
+  this.email = email;
+  this.category = category;
+  this.favorite = favorite;
+  this.website = website;
+  this.username = username;
+  this.password = password;
+  this.notes = notes;
+  this.strength = strength;
+  this.lastModified = lastModified;
+  return this.save();
+};
 export const Password =
   models.Password || model<IPassword>("Password", PasswordSchema);
